@@ -2923,41 +2923,32 @@ namespace RuntimeLanguageProcessor {
                                                       cNumericFieldNames);
                     }
 
-                    // loop over each alpha and register variable named as global Erl variable
-                    for (ErlVarLoop = 1; ErlVarLoop <= NumAlphas; ++ErlVarLoop) {
-                        if ((cCurrentModuleObject.compare("ExternalInterface:FunctionalMockupUnitImport:To:Variable") == 0)) {
-                            if (ErlVarLoop == 1) {
-                                // Only validate first field of object ExternalInterface:FunctionalMockupUnitImport:To:Variable.
-                                // This object is allowed to contain fields that do not need to be valid EMS fields (e.g. path to the FMU).
-                                ValidateEMSVariableName(
-                                    cCurrentModuleObject, cAlphaArgs(ErlVarLoop), cAlphaFieldNames(ErlVarLoop), errFlag, ErrorsFound);
-                            }
-                        } else {
-                            ValidateEMSVariableName(cCurrentModuleObject, cAlphaArgs(ErlVarLoop), cAlphaFieldNames(ErlVarLoop), errFlag, ErrorsFound);
-                        }
-                        if (lAlphaFieldBlanks(ErlVarLoop)) {
-                            ShowWarningError(RoutineName + cCurrentModuleObject);
-                            ShowContinueError("Blank " + cAlphaFieldNames(1));
-                            ShowContinueError("Blank entry will be skipped, and the simulation continues");
-                        } else if (!errFlag) {
-                            VariableNum = FindEMSVariable(cAlphaArgs(ErlVarLoop), 0);
-                            // Still need to check for conflicts with program and function names too
+					// Check if variable name is unique and well formed
+					ValidateEMSVariableName(cCurrentModuleObject, cAlphaArgs(1), cAlphaFieldNames(1), errFlag, ErrorsFound);
+					if (lAlphaFieldBlanks(1)) {
+						ShowWarningError(RoutineName + cCurrentModuleObject);
+						ShowContinueError("Blank " + cAlphaFieldNames(1));
+						ShowContinueError("Blank entry will be skipped, and the simulation continues");
+					}
+					else if (!errFlag) {
+						VariableNum = FindEMSVariable(cAlphaArgs(1), 0);
+						// Still need to check for conflicts with program and function names too
 
-                            if (VariableNum > 0) {
-                                ShowSevereError(RoutineName + cCurrentModuleObject + ", invalid entry.");
-                                ShowContinueError("Invalid " + cAlphaFieldNames(ErlVarLoop) + '=' + cAlphaArgs(ErlVarLoop));
-                                ShowContinueError("Name conflicts with an existing global variable name");
-                                ErrorsFound = true;
-                            } else {
-                                VariableNum = NewEMSVariable(cAlphaArgs(ErlVarLoop), 0);
-                                if (GlobalNum > NumUserGlobalVariables) {
-                                    // Initialize variables for the ExternalInterface variables.
-                                    // This object requires an initial value.
-                                    ExternalInterfaceInitializeErlVariable(VariableNum, SetErlValueNumber(rNumericArgs(1)), false);
-                                }
-                            }
-                        }
-                    }
+						if (VariableNum > 0) {
+							ShowSevereError(RoutineName + cCurrentModuleObject + ", invalid entry.");
+							ShowContinueError("Invalid " + cAlphaFieldNames(1) + '=' + cAlphaArgs(1));
+							ShowContinueError("Name conflicts with an existing global variable name");
+							ErrorsFound = true;
+						}
+						else {
+							VariableNum = NewEMSVariable(cAlphaArgs(1), 0);
+							if (GlobalNum > NumUserGlobalVariables) {
+								// Initialize variables for the ExternalInterface variables.
+								// This object requires an initial value.
+								ExternalInterfaceInitializeErlVariable(VariableNum, SetErlValueNumber(rNumericArgs(1)), false);
+							}
+						}
+					}
                 }
             }
 
