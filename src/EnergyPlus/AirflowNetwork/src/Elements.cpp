@@ -411,21 +411,9 @@ namespace AirflowNetwork {
         // na
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-        Real64 CDM;
-        Real64 FL;
         Real64 FT;
-        Real64 RhozNorm;
-        Real64 VisczNorm;
         Real64 expn;
-        Real64 Ctl;
-        Real64 coef;
         Real64 Corr;
-        Real64 VisAve;
-        Real64 Tave;
-        Real64 RhoCor;
-
-        // Formats
-        // static gio::Fmt Format_901("(A5,I3,6X,4E16.7)");
 
         // FLOW:
         // Crack standard condition from given inputs
@@ -435,61 +423,49 @@ namespace AirflowNetwork {
             Corr = MultizoneSurfaceData(i).Factor;
         }
         // CompNum = AirflowNetworkCompData(j).TypeNum;
-        RhozNorm = AIRDENSITY(StandardP, StandardT, StandardW);
-        VisczNorm = 1.71432e-5 + 4.828e-8 * StandardT;
+        Real64 RhozNorm = AIRDENSITY(StandardP, StandardT, StandardW);
+        Real64 VisczNorm = 1.71432e-5 + 4.828e-8 * StandardT;
 
         expn = FlowExpo;
-        VisAve = (propN.viscosity + propM.viscosity) / 2.0;
-        Tave = (propN.temperature + propM.temperature) / 2.0;
-        if (PDROP >= 0.0) {
-            coef = FlowCoef / propN.sqrtDensity * Corr;
-        } else {
-            coef = FlowCoef / propM.sqrtDensity * Corr;
+        Real64 VisAve = (propN.viscosity + propM.viscosity) / 2.0;
+        Real64 Tave = (propN.temperature + propM.temperature) / 2.0;
+
+        Real64 sign{1.0};
+        Real64 absPDROP{PDROP};
+        Real64 temperature{propN.temperature};
+        Real64 density{propN.density};
+        Real64 sqrtDensity{propN.sqrtDensity};
+        Real64 viscosity{propN.viscosity};
+        if (PDROP < 0.0) {
+            sign = -1.0;
+            absPDROP = -PDROP;
+            temperature = propM.temperature;
+            density = propM.density;
+            sqrtDensity = propM.sqrtDensity;
+            viscosity = propM.viscosity;
         }
+        Real64 coef = FlowCoef / sqrtDensity * Corr;
 
         if (LFLAG) {
             // Initialization by linear relation.
-            if (PDROP >= 0.0) {
-                RhoCor = TOKELVIN(propN.temperature) / TOKELVIN(Tave);
-                Ctl = std::pow(RhozNorm / propN.density / RhoCor, expn - 1.0) * std::pow(VisczNorm / VisAve, 2.0 * expn - 1.0);
-                DF[0] = coef * propN.density / propN.viscosity * Ctl;
-            } else {
-                RhoCor = TOKELVIN(propM.temperature) / TOKELVIN(Tave);
-                Ctl = std::pow(RhozNorm / propM.density / RhoCor, expn - 1.0) * std::pow(VisczNorm / VisAve, 2.0 * expn - 1.0);
-                DF[0] = coef * propM.density / propM.viscosity * Ctl;
-            }
+            Real64 RhoCor = TOKELVIN(temperature) / TOKELVIN(Tave);
+            Real64 Ctl = std::pow(RhozNorm / density / RhoCor, expn - 1.0) * std::pow(VisczNorm / VisAve, 2.0 * expn - 1.0);
+            DF[0] = coef * density / viscosity * Ctl;
             F[0] = -DF[0] * PDROP;
         } else {
             // Standard calculation.
-            if (PDROP >= 0.0) {
-                // Flow in positive direction.
-                // Laminar flow.
-                RhoCor = TOKELVIN(propN.temperature) / TOKELVIN(Tave);
-                Ctl = std::pow(RhozNorm / propN.density / RhoCor, expn - 1.0) * std::pow(VisczNorm / VisAve, 2.0 * expn - 1.0);
-                CDM = coef * propN.density / propN.viscosity * Ctl;
-                FL = CDM * PDROP;
-                // Turbulent flow.
-                if (expn == 0.5) {
-                    FT = coef * propN.sqrtDensity * std::sqrt(PDROP) * Ctl;
-                } else {
-                    FT = coef * propN.sqrtDensity * std::pow(PDROP, expn) * Ctl;
-                }
+            // Laminar flow.
+            Real64 RhoCor = TOKELVIN(temperature) / TOKELVIN(Tave);
+            Real64 Ctl = std::pow(RhozNorm / density / RhoCor, expn - 1.0) * std::pow(VisczNorm / VisAve, 2.0 * expn - 1.0);
+            Real64 CDM = coef * density / viscosity * Ctl;
+            Real64 FL = CDM * PDROP;
+            // Turbulent flow.
+            if (expn == 0.5) {
+                FT = sign * coef * sqrtDensity * std::sqrt(absPDROP) * Ctl;
             } else {
-                // Flow in negative direction.
-                // Laminar flow.
-                RhoCor = TOKELVIN(propM.temperature) / TOKELVIN(Tave);
-                Ctl = std::pow(RhozNorm / propM.density / RhoCor, expn - 1.0) * std::pow(VisczNorm / VisAve, 2.0 * expn - 1.0);
-                CDM = coef * propM.density / propM.viscosity * Ctl;
-                FL = CDM * PDROP;
-                // Turbulent flow.
-                if (expn == 0.5) {
-                    FT = -coef * propM.sqrtDensity * std::sqrt(-PDROP) * Ctl;
-                } else {
-                    FT = -coef * propM.sqrtDensity * std::pow(-PDROP, expn) * Ctl;
-                }
+                FT = sign * coef * sqrtDensity * std::pow(absPDROP, expn) * Ctl;
             }
             // Select laminar or turbulent flow.
-            // if (LIST >= 4) gio::write(Unit21, Format_901) << " scr: " << i << PDROP << FL << FT;
             if (std::abs(FL) <= std::abs(FT)) {
                 F[0] = FL;
                 DF[0] = CDM;
@@ -1476,13 +1452,13 @@ namespace AirflowNetwork {
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         Real64 DPMID; // pressure drop at mid-height of doorway.
         Real64 C;
-        Real64 DF0;   // derivative factor at the bottom of the door.
-        Real64 DFH;   // derivative factor at the top of the door.
-        Real64 DRHO;  // difference in air densities between rooms.
+        Real64 DF0;  // derivative factor at the bottom of the door.
+        Real64 DFH;  // derivative factor at the top of the door.
+        Real64 DRHO; // difference in air densities between rooms.
         Real64 GDRHO;
-        Real64 F0;    // flow factor at the bottom of the door.
-        Real64 FH;    // flow factor at the top of the door.
-        Real64 Y;     // height of neutral plane rel. to bottom of door (m).
+        Real64 F0; // flow factor at the bottom of the door.
+        Real64 FH; // flow factor at the top of the door.
+        Real64 Y;  // height of neutral plane rel. to bottom of door (m).
         Real64 coeff;
         Real64 Width;
         Real64 Height;
@@ -1783,14 +1759,9 @@ namespace AirflowNetwork {
         Real64 AA1;
         Real64 area;
 
-        // Formats
-        // static gio::Fmt Format_901("(A5,I3,6X,4E16.7)");
-
         // FLOW:
         // Get component properties
-        // ed = Rough / DisSysCompCoilData(CompNum).hydraulicDiameter;
         ed = Rough / hydraulicDiameter;
-
         area = square(hydraulicDiameter) * DataGlobals::Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
@@ -1804,7 +1775,6 @@ namespace AirflowNetwork {
                 DF[0] = (2.0 * propM.density * area * hydraulicDiameter) / (propM.viscosity * InitLamCoef * ld);
             }
             F[0] = -DF[0] * PDROP;
-            // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwi:" << i << InitLamCoef << F[0] << DF[0];
         } else {
             // Standard calculation.
             if (PDROP >= 0.0) {
@@ -1822,19 +1792,16 @@ namespace AirflowNetwork {
                     FL = CDM * PDROP;
                 }
                 RE = FL * hydraulicDiameter / (propN.viscosity * area);
-                // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwl:" << i << PDROP << FL << CDM << RE;
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(2.0 * propN.density * PDROP) * area;
                     FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                    // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << S2 << FTT << g;
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propN.viscosity * area) / (FT * Rough);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
                         FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                        // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << B << FTT << g;
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = FTT;
@@ -1856,19 +1823,16 @@ namespace AirflowNetwork {
                     FL = CDM * PDROP;
                 }
                 RE = -FL * hydraulicDiameter / (propM.viscosity * area);
-                // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwl:" << i << PDROP << FL << CDM << RE;
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(-2.0 * propM.density * PDROP) * area;
                     FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                    // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << S2 << FTT << g;
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propM.viscosity * area) / (FT * Rough);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
                         FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                        // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << B << FTT << g;
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = -FTT;
@@ -1945,13 +1909,10 @@ namespace AirflowNetwork {
         Real64 AA1;
         Real64 area;
 
-        // Formats
-        // static gio::Fmt Format_901("(A5,I3,6X,4E16.7)");
-
         // FLOW:
         // Get component properties
         ed = Rough / hydraulicDiameter;
-        area = pow_2(hydraulicDiameter) * DataGlobals::Pi;
+        area = square(hydraulicDiameter) * DataGlobals::Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
         AA1 = g;
@@ -1964,7 +1925,6 @@ namespace AirflowNetwork {
                 DF[0] = (2.0 * propM.density * area * hydraulicDiameter) / (propM.viscosity * InitLamCoef * ld);
             }
             F[0] = -DF[0] * PDROP;
-            // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwi:" << i << InitLamCoef << F[0] << DF[0];
         } else {
             // Standard calculation.
             if (PDROP >= 0.0) {
@@ -1982,19 +1942,16 @@ namespace AirflowNetwork {
                     FL = CDM * PDROP;
                 }
                 RE = FL * hydraulicDiameter / (propN.viscosity * area);
-                // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwl:" << i << PDROP << FL << CDM << RE;
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(2.0 * propN.density * PDROP) * area;
                     FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                    // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << S2 << FTT << g;
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propN.viscosity * area) / (FT * Rough);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
                         FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                        // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << B << FTT << g;
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = FTT;
@@ -2016,19 +1973,16 @@ namespace AirflowNetwork {
                     FL = CDM * PDROP;
                 }
                 RE = -FL * hydraulicDiameter / (propM.viscosity * area);
-                // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwl:" << i << PDROP << FL << CDM << RE;
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(-2.0 * propM.density * PDROP) * area;
                     FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                    // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << S2 << FTT << g;
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propM.viscosity * area) / (FT * Rough);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
                         FTT = S2 / std::sqrt(ld / pow_2(g) + TurDynCoef);
-                        // if (LIST >= 4) gio::write(Unit21, Format_901) << " dwt:" << i << B << FTT << g;
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = -FTT;
@@ -2113,7 +2067,7 @@ namespace AirflowNetwork {
         // FLOW:
         // Get component properties
         ed = Rough / hydraulicDiameter;
-        area = pow_2(hydraulicDiameter) * DataGlobals::Pi;
+        area = square(hydraulicDiameter) * DataGlobals::Pi;
         ld = L / hydraulicDiameter;
         g = 1.14 - 0.868589 * std::log(ed);
         AA1 = g;

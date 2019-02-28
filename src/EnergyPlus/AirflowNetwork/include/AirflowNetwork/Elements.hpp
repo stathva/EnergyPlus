@@ -48,8 +48,8 @@
 #ifndef ELEMENTS_HPP
 #define ELEMENTS_HPP
 
-#include "AirflowNetwork/Solver.hpp"
 #include "AirflowNetwork/Properties.hpp"
+#include "AirflowNetwork/Solver.hpp"
 
 namespace EnergyPlus {
 
@@ -498,7 +498,7 @@ namespace AirflowNetwork {
         Real64 StandardW; // Standard humidity ratio for crack data
 
         // Default Constructor
-        SurfaceCrack() : FlowCoef(0.0), FlowExpo(0.0), StandardT(0.0), StandardP(0.0), StandardW(0.0)
+        SurfaceCrack() : FlowCoef(0.0), FlowExpo(0.0), StandardT(20.0), StandardP(101325.0), StandardW(0.0)
         {
         }
 
