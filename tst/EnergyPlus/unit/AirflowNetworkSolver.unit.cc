@@ -76,8 +76,8 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HorizontalOpening)
     n = 1;
     m = 2;
 
-    AirflowNetworkCompData.allocate(j);
-    AirflowNetworkCompData(j).TypeNum = 1;
+    //AirflowNetworkCompData.allocate(j);
+    //AirflowNetworkCompData(j).TypeNum = 1;
     MultizoneSurfaceData.allocate(i);
     MultizoneSurfaceData(i).Width = 10.0;
     MultizoneSurfaceData(i).Height = 5.0;
@@ -113,7 +113,7 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HorizontalOpening)
 
     MultizoneCompHorOpeningData.deallocate();
     MultizoneSurfaceData.deallocate();
-    AirflowNetworkCompData.deallocate();
+    //AirflowNetworkCompData.deallocate();
 }
 
 TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Coil)
@@ -123,12 +123,10 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Coil)
     std::array<Real64,2> F;
     std::array<Real64,2> DF;
 
-    AirflowNetworkCompData.allocate(1);
-    AirflowNetworkCompData[0].TypeNum = 1;
-
     DisSysCompCoilData.allocate(1);
     DisSysCompCoilData[0].hydraulicDiameter = 1.0;
     DisSysCompCoilData[0].L = 1.0;
+    DisSysCompCoilData[0].A = DisSysCompCoilData[0].hydraulicDiameter * DisSysCompCoilData[0].hydraulicDiameter * DataGlobals::Pi;
 
     properties.resize(2);
     properties[0].density = 1.2;
@@ -153,5 +151,80 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Coil)
     EXPECT_EQ(0.0, DF[1]);
 
     DisSysCompCoilData.deallocate();
-    AirflowNetworkCompData.deallocate();
+}
+
+TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HX)
+{
+
+    int NF;
+    std::array<Real64, 2> F;
+    std::array<Real64, 2> DF;
+
+    DisSysCompHXData.allocate(1);
+    DisSysCompHXData[0].hydraulicDiameter = 1.0;
+    DisSysCompHXData[0].L = 1.0;
+    DisSysCompHXData[0].A = DisSysCompHXData[0].hydraulicDiameter * DisSysCompHXData[0].hydraulicDiameter * DataGlobals::Pi;
+
+    properties.resize(2);
+    properties[0].density = 1.2;
+    properties[1].density = 1.2;
+
+    properties[0].viscosity = 1.0e-5;
+    properties[1].viscosity = 1.0e-5;
+
+    F[1] = DF[1] = 0.0;
+
+    NF = DisSysCompHXData[0].calculate(1, 0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_NEAR(-294.5243112740431, F[0], 0.00001);
+    EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    NF = DisSysCompHXData[0].calculate(1, -0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_NEAR(294.5243112740431, F[0], 0.00001);
+    EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    DisSysCompHXData.deallocate();
+}
+
+TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_TU)
+{
+
+    int NF;
+    std::array<Real64, 2> F;
+    std::array<Real64, 2> DF;
+
+    AirflowNetworkLinkageData.allocate(1);
+    AirflowNetworkLinkageData[0].VAVTermDamper = false;
+
+    DisSysCompTermUnitData.allocate(1);
+    DisSysCompTermUnitData[0].hydraulicDiameter = 1.0;
+    DisSysCompTermUnitData[0].L = 1.0;
+    DisSysCompTermUnitData[0].A = DisSysCompTermUnitData[0].hydraulicDiameter * DisSysCompTermUnitData[0].hydraulicDiameter * DataGlobals::Pi;
+
+    properties.resize(2);
+    properties[0].density = 1.2;
+    properties[1].density = 1.2;
+
+    properties[0].viscosity = 1.0e-5;
+    properties[1].viscosity = 1.0e-5;
+
+    F[1] = DF[1] = 0.0;
+
+    NF = DisSysCompTermUnitData[0].calculate(1, 0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_NEAR(-294.5243112740431, F[0], 0.00001);
+    EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    NF = DisSysCompTermUnitData[0].calculate(1, -0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_NEAR(294.5243112740431, F[0], 0.00001);
+    EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    DisSysCompTermUnitData.deallocate();
+    AirflowNetworkLinkageData.deallocate();
 }
