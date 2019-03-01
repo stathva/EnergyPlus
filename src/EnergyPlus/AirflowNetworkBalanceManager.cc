@@ -1426,6 +1426,7 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompCoilData(i).EPlusType = coil_type;                            // coil type
                 DisSysCompCoilData(i).L = L;                                            // Air path length
                 DisSysCompCoilData(i).hydraulicDiameter = D;                            // Air path hydraulic diameter
+                DisSysCompCoilData(i).A = D * D * DataGlobals::Pi;                      // Cross section area
                 ++i;
             }
         }
@@ -1452,6 +1453,7 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompHXData(i).EPlusType = hx_type;                            // coil type
                 DisSysCompHXData(i).L = L;                                          // Air path length
                 DisSysCompHXData(i).hydraulicDiameter = D;                          // Air path hydraulic diameter
+                DisSysCompHXData(i).A = D * D * DataGlobals::Pi;                    // Cross section area
                 DisSysCompHXData(i).CoilParentExists = HVACHXAssistedCoolingCoil::VerifyHeatExchangerParent(hx_type, hx_name);
                 ++i;
             }
@@ -1479,6 +1481,7 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompTermUnitData(i).EPlusType = tu_type;                            // Terminal unit type
                 DisSysCompTermUnitData(i).L = L;                                          // Air path length
                 DisSysCompTermUnitData(i).hydraulicDiameter = D;                          // Air path hydraulic diameter
+                DisSysCompTermUnitData(i).A = D * D * DataGlobals::Pi;                    // Cross section area
                 ++i;
             }
         }

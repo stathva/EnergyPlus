@@ -842,8 +842,9 @@ namespace AirflowNetwork {
         // Members
         std::string Name;         // Name of coil component
         std::string EPlusType;    // EnergyPlus coil type
-        Real64 L;                 // Air path length
-        Real64 hydraulicDiameter; // Air path hydraulic diameter
+        Real64 L;                 // Air path length [m]
+        Real64 hydraulicDiameter; // Air path hydraulic diameter [m]
+        Real64 A;                 // Cross section area [m2]
         int AirLoopNum;           // AirLoop number
 
         // Default Constructor
@@ -866,8 +867,9 @@ namespace AirflowNetwork {
         // Members
         std::string Name;         // Name of coil component
         std::string EPlusType;    // EnergyPlus coil type
-        Real64 L;                 // Air path length
-        Real64 hydraulicDiameter; // Air path hydraulic diameter
+        Real64 L;                 // Air path length [m]
+        Real64 hydraulicDiameter; // Air path hydraulic diameter [m]
+        Real64 A;                 // Cross section area [m2]
         bool CoilParentExists;    // Is a coil component
 
         // Default Constructor
@@ -890,8 +892,9 @@ namespace AirflowNetwork {
         // Members
         std::string Name;         // Name of coil component
         std::string EPlusType;    // EnergyPlus coil type
-        Real64 L;                 // Air path length
-        Real64 hydraulicDiameter; // Air path hydraulic diameter
+        Real64 L;                 // Air path length [m]
+        Real64 hydraulicDiameter; // Air path hydraulic diameter [m]
+        Real64 A;                 // Cross section area [m2]
         int DamperInletNode;      // Damper inlet node number
         int DamperOutletNode;     // Damper outlet node number
         int AirLoopNum;           // AirLoop number
