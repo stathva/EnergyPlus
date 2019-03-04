@@ -360,6 +360,9 @@ namespace AirflowNetwork {
 
     struct AirflowElement
     {
+        virtual ~AirflowElement()
+        {
+        }
     };
 
     struct DetailedOpening : public AirflowElement // Large detailed opening component
@@ -717,12 +720,6 @@ namespace AirflowNetwork {
         Real64 A;                 // Cross section area [m2]
         Real64 roughness;         // Surface roughness [m]
         Real64 TurDynCoef;        // Turbulent dynamic loss coefficient
-        Real64 UThermConduct;     // Conduction heat transmittance [W/m2-K]
-        Real64 UMoisture;         // Overall moisture transmittance [kg/m2]
-        Real64 InsideConvCoeff;   // Inside convection coefficient [W/m2-K]
-        Real64 OutsideConvCoeff;  // Outside convection coefficient [W/m2-K]
-        Real64 MThermal;          // Thermal capacity [J/K]
-        Real64 MMoisture;         // Moisture capacity [kg]
         Real64 LamDynCoef;        // Laminar dynamic loss coefficient
         Real64 LamFriCoef;        // Laminar friction loss coefficient
         Real64 InitLamCoef;       // Coefficient of linear initialization
@@ -733,9 +730,12 @@ namespace AirflowNetwork {
 
         // Default Constructor
         Duct()
-            : L(0.0), hydraulicDiameter(0.0), A(0.0), roughness(0.0), TurDynCoef(0.0), UThermConduct(0.0), UMoisture(0.0), InsideConvCoeff(0.0),
-              OutsideConvCoeff(0.0), MThermal(0.0), MMoisture(0.0), LamDynCoef(0.0), LamFriCoef(0.0), InitLamCoef(0.0), RelRough(0.0), RelL(0.0),
-              g(0.0), A1(0.0)
+            : L(0.0), hydraulicDiameter(0.0), A(0.0), roughness(0.0), TurDynCoef(0.0), LamDynCoef(0.0), LamFriCoef(0.0), InitLamCoef(0.0),
+              RelRough(0.0), RelL(0.0), g(0.0), A1(0.0)
+        {
+        }
+
+        virtual ~Duct()
         {
         }
 
@@ -747,6 +747,22 @@ namespace AirflowNetwork {
                       std::array<Real64, 2> &F,   // Airflow through the component [kg/s]
                       std::array<Real64, 2> &DF   // Partial derivative:  DF/DP
         );
+    };
+
+    struct EnergyPlusDuct : public Duct // Duct component
+    {
+        // Members
+        Real64 UThermConduct;    // Conduction heat transmittance [W/m2-K]
+        Real64 UMoisture;        // Overall moisture transmittance [kg/m2]
+        Real64 InsideConvCoeff;  // Inside convection coefficient [W/m2-K]
+        Real64 OutsideConvCoeff; // Outside convection coefficient [W/m2-K]
+        Real64 MThermal;         // Thermal capacity [J/K]
+        Real64 MMoisture;        // Moisture capacity [kg]
+
+        // Default Constructor
+        EnergyPlusDuct() : Duct(), UThermConduct(0.0), UMoisture(0.0), InsideConvCoeff(0.0), OutsideConvCoeff(0.0), MThermal(0.0), MMoisture(0.0)
+        {
+        }
     };
 
     struct Damper : public AirflowElement // Damper component
@@ -837,54 +853,22 @@ namespace AirflowNetwork {
         );
     };
 
-    struct DisSysCompCoilProp : public AirflowElement // Coil component
+    struct EquivalentDuct : public Duct // Coil component
     {
         // Members
-        std::string Name;         // Name of coil component
-        std::string EPlusType;    // EnergyPlus coil type
-        Real64 L;                 // Air path length [m]
-        Real64 hydraulicDiameter; // Air path hydraulic diameter [m]
-        Real64 A;                 // Cross section area [m2]
-        int AirLoopNum;           // AirLoop number
+        std::string EPlusType; // EnergyPlus coil type
+        int AirLoopNum;        // AirLoop number
+        bool CoilParentExists; // Is a coil component
 
         // Default Constructor
-        DisSysCompCoilProp() : L(0.0), hydraulicDiameter(0.0), AirLoopNum(0)
+        EquivalentDuct() : Duct(), AirLoopNum(0), CoilParentExists(false)
         {
+            roughness = 0.0001;
+            InitLamCoef = 128.0;
+            LamDynCoef = 64.0;
+            LamFriCoef = 0.0001;
+            TurDynCoef = 0.0001;
         }
-
-        int calculate(bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
-                      Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
-                      int const i,                // Linkage number
-                      const AirProperties &propN, // Node 1 properties
-                      const AirProperties &propM, // Node 2 properties
-                      std::array<Real64, 2> &F,   // Airflow through the component [kg/s]
-                      std::array<Real64, 2> &DF   // Partial derivative:  DF/DP
-        );
-    };
-
-    struct DisSysCompHXProp : public AirflowElement // Coil component
-    {
-        // Members
-        std::string Name;         // Name of coil component
-        std::string EPlusType;    // EnergyPlus coil type
-        Real64 L;                 // Air path length [m]
-        Real64 hydraulicDiameter; // Air path hydraulic diameter [m]
-        Real64 A;                 // Cross section area [m2]
-        bool CoilParentExists;    // Is a coil component
-
-        // Default Constructor
-        DisSysCompHXProp() : L(0.0), hydraulicDiameter(0.0), CoilParentExists(false)
-        {
-        }
-
-        int calculate(bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
-                      Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
-                      int const i,                // Linkage number
-                      const AirProperties &propN, // Node 1 properties
-                      const AirProperties &propM, // Node 2 properties
-                      std::array<Real64, 2> &F,   // Airflow through the component [kg/s]
-                      std::array<Real64, 2> &DF   // Partial derivative:  DF/DP
-        );
     };
 
     struct DisSysCompTermUnitProp : public AirflowElement // Terminal unit component
@@ -1318,7 +1302,6 @@ namespace AirflowNetwork {
     extern Array1D<DetailedOpening> MultizoneCompDetOpeningData;
     extern Array1D<SimpleOpening> MultizoneCompSimpleOpeningData;
     extern Array1D<HorizontalOpening> MultizoneCompHorOpeningData;
-    // extern Array1D<ReferenceConditions> MultizoneSurfaceStdConditionsCrackData;
     extern Array1D<SurfaceCrack> MultizoneSurfaceCrackData;
     extern Array1D<EffectiveLeakageArea> MultizoneSurfaceELAData;
     extern Array1D<MultizoneExternalNodeProp> MultizoneExternalNodeData;
@@ -1330,12 +1313,12 @@ namespace AirflowNetwork {
     extern Array1D<DisSysNodeProp> DisSysNodeData;
     extern Array1D<DuctLeak> DisSysCompLeakData;
     extern Array1D<EffectiveLeakageRatio> DisSysCompELRData;
-    extern Array1D<Duct> DisSysCompDuctData;
+    extern Array1D<EnergyPlusDuct> DisSysCompDuctData;
     extern Array1D<Damper> DisSysCompDamperData;
     extern Array1D<ConstantVolumeFan> DisSysCompCVFData;
     extern Array1D<DetailedFan> DisSysCompDetFanData;
-    extern Array1D<DisSysCompCoilProp> DisSysCompCoilData;
-    extern Array1D<DisSysCompHXProp> DisSysCompHXData;
+    extern Array1D<EquivalentDuct> DisSysCompCoilData;
+    extern Array1D<EquivalentDuct> DisSysCompHXData;
     extern Array1D<DisSysCompTermUnitProp> DisSysCompTermUnitData;
     extern Array1D<ConstantPressureDrop> DisSysCompCPDData;
     extern Array1D<AiflowNetworkReportProp> AirflowNetworkReportData;

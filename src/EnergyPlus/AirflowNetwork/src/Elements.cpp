@@ -202,7 +202,6 @@ namespace AirflowNetwork {
     Array1D<DetailedOpening> MultizoneCompDetOpeningData;
     Array1D<SimpleOpening> MultizoneCompSimpleOpeningData;
     Array1D<HorizontalOpening> MultizoneCompHorOpeningData;
-    // Array1D<ReferenceConditions> MultizoneSurfaceStdConditionsCrackData;
     Array1D<SurfaceCrack> MultizoneSurfaceCrackData;
     Array1D<EffectiveLeakageArea> MultizoneSurfaceELAData;
     Array1D<MultizoneExternalNodeProp> MultizoneExternalNodeData;
@@ -214,12 +213,12 @@ namespace AirflowNetwork {
     Array1D<DisSysNodeProp> DisSysNodeData;
     Array1D<DuctLeak> DisSysCompLeakData;
     Array1D<EffectiveLeakageRatio> DisSysCompELRData;
-    Array1D<Duct> DisSysCompDuctData;
+    Array1D<EnergyPlusDuct> DisSysCompDuctData;
     Array1D<Damper> DisSysCompDamperData;
     Array1D<ConstantVolumeFan> DisSysCompCVFData;
     Array1D<DetailedFan> DisSysCompDetFanData;
-    Array1D<DisSysCompCoilProp> DisSysCompCoilData;
-    Array1D<DisSysCompHXProp> DisSysCompHXData;
+    Array1D<EquivalentDuct> DisSysCompCoilData;
+    Array1D<EquivalentDuct> DisSysCompHXData;
     Array1D<DisSysCompTermUnitProp> DisSysCompTermUnitData;
     Array1D<ConstantPressureDrop> DisSysCompCPDData;
     Array1D<AiflowNetworkReportProp> AirflowNetworkReportData;
@@ -316,13 +315,13 @@ namespace AirflowNetwork {
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(2.0 * propN.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                    FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propN.viscosity * A) / (FT * roughness);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                        FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = FTT;
@@ -347,13 +346,13 @@ namespace AirflowNetwork {
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(-2.0 * propM.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                    FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propM.viscosity * A) / (FT * roughness);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                        FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = -FTT;
@@ -1694,151 +1693,6 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DisSysCompCoilProp::calculate(bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
-                                      Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
-                                      int const EP_UNUSED(i),     // Linkage number
-                                      const AirProperties &propN, // Node 1 properties
-                                      const AirProperties &propM, // Node 2 properties
-                                      std::array<Real64, 2> &F,   // Airflow through the component [kg/s]
-                                      std::array<Real64, 2> &DF   // Partial derivative:  DF/DP
-    )
-    {
-
-        // SUBROUTINE INFORMATION:
-        //       AUTHOR         George Walton
-        //       DATE WRITTEN   Extracted from AIRNET
-        //       MODIFIED       Lixing Gu, 2/1/04
-        //                      Revised the subroutine to meet E+ needs
-        //       MODIFIED       Lixing Gu, 6/8/05
-        //       RE-ENGINEERED  na
-
-        // PURPOSE OF THIS SUBROUTINE:
-        // This subroutine solves airflow for a coil component
-
-        // METHODOLOGY EMPLOYED:
-        // na
-
-        // REFERENCES:
-        // na
-
-        // SUBROUTINE PARAMETER DEFINITIONS:
-        Real64 const C(0.868589);
-        Real64 const EPS(0.001);
-        Real64 const roughness(0.0001);
-        Real64 const InitLamCoef(128.0);
-        Real64 const LamDynCoef(64.0);
-        Real64 const LamFriCoef(0.0001);
-        Real64 const TurDynCoef(0.0001);
-
-        // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-        Real64 A0;
-        Real64 A1;
-        Real64 A2;
-        Real64 B;
-        Real64 D;
-        Real64 S2;
-        Real64 CDM;
-        Real64 FL;
-        Real64 FT;
-        Real64 FTT;
-        Real64 RE;
-        Real64 ed;
-        Real64 ld;
-        Real64 g;
-        Real64 AA1;
-
-        // FLOW:
-        // Get component properties
-        ed = roughness / hydraulicDiameter;
-        ld = L / hydraulicDiameter;
-        g = 1.14 - 0.868589 * std::log(ed);
-        AA1 = g;
-
-        if (LFLAG) {
-            // Initialization by linear relation.
-            if (PDROP >= 0.0) {
-                DF[0] = (2.0 * propN.density * A * hydraulicDiameter) / (propN.viscosity * InitLamCoef * ld);
-            } else {
-                DF[0] = (2.0 * propM.density * A * hydraulicDiameter) / (propM.viscosity * InitLamCoef * ld);
-            }
-            F[0] = -DF[0] * PDROP;
-        } else {
-            // Standard calculation.
-            if (PDROP >= 0.0) {
-                // Flow in positive direction.
-                // Laminar flow coefficient !=0
-                if (LamFriCoef >= 0.001) {
-                    A2 = LamFriCoef / (2.0 * propN.density * A * A);
-                    A1 = (propN.viscosity * LamDynCoef * ld) / (2.0 * propN.density * A * hydraulicDiameter);
-                    A0 = -PDROP;
-                    CDM = std::sqrt(A1 * A1 - 4.0 * A2 * A0);
-                    FL = (CDM - A1) / (2.0 * A2);
-                    CDM = 1.0 / CDM;
-                } else {
-                    CDM = (2.0 * propN.density * A * hydraulicDiameter) / (propN.viscosity * LamDynCoef * ld);
-                    FL = CDM * PDROP;
-                }
-                RE = FL * hydraulicDiameter / (propN.viscosity * A);
-                // Turbulent flow; test when Re>10.
-                if (RE >= 10.0) {
-                    S2 = std::sqrt(2.0 * propN.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                    while (true) {
-                        FT = FTT;
-                        B = (9.3 * propN.viscosity * A) / (FT * roughness);
-                        D = 1.0 + g * B;
-                        g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                        if (std::abs(FTT - FT) / FTT < EPS) break;
-                    }
-                    FT = FTT;
-                } else {
-                    FT = FL;
-                }
-            } else {
-                // Flow in negative direction.
-                // Laminar flow coefficient !=0
-                if (LamFriCoef >= 0.001) {
-                    A2 = LamFriCoef / (2.0 * propM.density * A * A);
-                    A1 = (propM.viscosity * LamDynCoef * ld) / (2.0 * propM.density * A * hydraulicDiameter);
-                    A0 = PDROP;
-                    CDM = std::sqrt(A1 * A1 - 4.0 * A2 * A0);
-                    FL = -(CDM - A1) / (2.0 * A2);
-                    CDM = 1.0 / CDM;
-                } else {
-                    CDM = (2.0 * propM.density * A * hydraulicDiameter) / (propM.viscosity * LamDynCoef * ld);
-                    FL = CDM * PDROP;
-                }
-                RE = -FL * hydraulicDiameter / (propM.viscosity * A);
-                // Turbulent flow; test when Re>10.
-                if (RE >= 10.0) {
-                    S2 = std::sqrt(-2.0 * propM.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                    while (true) {
-                        FT = FTT;
-                        B = (9.3 * propM.viscosity * A) / (FT * roughness);
-                        D = 1.0 + g * B;
-                        g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                        if (std::abs(FTT - FT) / FTT < EPS) break;
-                    }
-                    FT = -FTT;
-                } else {
-                    FT = FL;
-                }
-            }
-            // Select laminar or turbulent flow.
-            if (std::abs(FL) <= std::abs(FT)) {
-                F[0] = FL;
-                DF[0] = CDM;
-            } else {
-                F[0] = FT;
-                DF[0] = 0.5 * FT / PDROP;
-            }
-        }
-        return 1;
-    }
-
     int DisSysCompTermUnitProp::calculate(bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                                           Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
                                           int const i,                // Linkage number
@@ -1930,13 +1784,13 @@ namespace AirflowNetwork {
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(2.0 * propN.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                    FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propN.viscosity * A) / (FT * roughness);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                        FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = FTT;
@@ -1961,13 +1815,13 @@ namespace AirflowNetwork {
                 // Turbulent flow; test when Re>10.
                 if (RE >= 10.0) {
                     S2 = std::sqrt(-2.0 * propM.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                    FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                     while (true) {
                         FT = FTT;
                         B = (9.3 * propM.viscosity * A) / (FT * roughness);
                         D = 1.0 + g * B;
                         g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
+                        FTT = S2 / std::sqrt(ld / (g * g) + TurDynCoef);
                         if (std::abs(FTT - FT) / FTT < EPS) break;
                     }
                     FT = -FTT;
@@ -1991,151 +1845,6 @@ namespace AirflowNetwork {
                 F[0] *= VAVTerminalRatio;
             }
             DF[0] = 0.0;
-        }
-        return 1;
-    }
-
-    int DisSysCompHXProp::calculate(bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
-                                    Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
-                                    int const EP_UNUSED(i),     // Linkage number
-                                    const AirProperties &propN, // Node 1 properties
-                                    const AirProperties &propM, // Node 2 properties
-                                    std::array<Real64, 2> &F,   // Airflow through the component [kg/s]
-                                    std::array<Real64, 2> &DF   // Partial derivative:  DF/DP
-    )
-    {
-
-        // SUBROUTINE INFORMATION:
-        //       AUTHOR         George Walton
-        //       DATE WRITTEN   Extracted from AIRNET
-        //       MODIFIED       Lixing Gu, 2/1/04
-        //                      Revised the subroutine to meet E+ needs
-        //       MODIFIED       Lixing Gu, 1/18/09
-        //       RE-ENGINEERED  na
-
-        // PURPOSE OF THIS SUBROUTINE:
-        // This subroutine solves airflow for a heat exchanger component
-
-        // METHODOLOGY EMPLOYED:
-        // na
-
-        // REFERENCES:
-        // na
-
-        // SUBROUTINE PARAMETER DEFINITIONS:
-        Real64 const C(0.868589);
-        Real64 const EPS(0.001);
-        Real64 const roughness(0.0001);
-        Real64 const InitLamCoef(128.0);
-        Real64 const LamDynCoef(64.0);
-        Real64 const LamFriCoef(0.0001);
-        Real64 const TurDynCoef(0.0001);
-
-        // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-        Real64 A0;
-        Real64 A1;
-        Real64 A2;
-        Real64 B;
-        Real64 D;
-        Real64 S2;
-        Real64 CDM;
-        Real64 FL;
-        Real64 FT;
-        Real64 FTT;
-        Real64 RE;
-        Real64 ed;
-        Real64 ld;
-        Real64 g;
-        Real64 AA1;
-
-        // FLOW:
-        // Get component properties
-        ed = roughness / hydraulicDiameter;
-        ld = L / hydraulicDiameter;
-        g = 1.14 - 0.868589 * std::log(ed);
-        AA1 = g;
-
-        if (LFLAG) {
-            // Initialization by linear relation.
-            if (PDROP >= 0.0) {
-                DF[0] = (2.0 * propN.density * A * hydraulicDiameter) / (propN.viscosity * InitLamCoef * ld);
-            } else {
-                DF[0] = (2.0 * propM.density * A * hydraulicDiameter) / (propM.viscosity * InitLamCoef * ld);
-            }
-            F[0] = -DF[0] * PDROP;
-        } else {
-            // Standard calculation.
-            if (PDROP >= 0.0) {
-                // Flow in positive direction.
-                // Laminar flow coefficient !=0
-                if (LamFriCoef >= 0.001) {
-                    A2 = LamFriCoef / (2.0 * propN.density * A * A);
-                    A1 = (propN.viscosity * LamDynCoef * ld) / (2.0 * propN.density * A * hydraulicDiameter);
-                    A0 = -PDROP;
-                    CDM = std::sqrt(A1 * A1 - 4.0 * A2 * A0);
-                    FL = (CDM - A1) / (2.0 * A2);
-                    CDM = 1.0 / CDM;
-                } else {
-                    CDM = (2.0 * propN.density * A * hydraulicDiameter) / (propN.viscosity * LamDynCoef * ld);
-                    FL = CDM * PDROP;
-                }
-                RE = FL * hydraulicDiameter / (propN.viscosity * A);
-                // Turbulent flow; test when Re>10.
-                if (RE >= 10.0) {
-                    S2 = std::sqrt(2.0 * propN.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                    while (true) {
-                        FT = FTT;
-                        B = (9.3 * propN.viscosity * A) / (FT * roughness);
-                        D = 1.0 + g * B;
-                        g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                        if (std::abs(FTT - FT) / FTT < EPS) break;
-                    }
-                    FT = FTT;
-                } else {
-                    FT = FL;
-                }
-            } else {
-                // Flow in negative direction.
-                // Laminar flow coefficient !=0
-                if (LamFriCoef >= 0.001) {
-                    A2 = LamFriCoef / (2.0 * propM.density * A * A);
-                    A1 = (propM.viscosity * LamDynCoef * ld) / (2.0 * propM.density * A * hydraulicDiameter);
-                    A0 = PDROP;
-                    CDM = std::sqrt(A1 * A1 - 4.0 * A2 * A0);
-                    FL = -(CDM - A1) / (2.0 * A2);
-                    CDM = 1.0 / CDM;
-                } else {
-                    CDM = (2.0 * propM.density * A * hydraulicDiameter) / (propM.viscosity * LamDynCoef * ld);
-                    FL = CDM * PDROP;
-                }
-                RE = -FL * hydraulicDiameter / (propM.viscosity * A);
-                // Turbulent flow; test when Re>10.
-                if (RE >= 10.0) {
-                    S2 = std::sqrt(-2.0 * propM.density * PDROP) * A;
-                    FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                    while (true) {
-                        FT = FTT;
-                        B = (9.3 * propM.viscosity * A) / (FT * roughness);
-                        D = 1.0 + g * B;
-                        g -= (g - AA1 + C * std::log(D)) / (1.0 + C * B / D);
-                        FTT = S2 / std::sqrt(ld / (g*g) + TurDynCoef);
-                        if (std::abs(FTT - FT) / FTT < EPS) break;
-                    }
-                    FT = -FTT;
-                } else {
-                    FT = FL;
-                }
-            }
-            // Select laminar or turbulent flow.
-            if (std::abs(FL) <= std::abs(FT)) {
-                F[0] = FL;
-                DF[0] = CDM;
-            } else {
-                F[0] = FT;
-                DF[0] = 0.5 * FT / PDROP;
-            }
         }
         return 1;
     }

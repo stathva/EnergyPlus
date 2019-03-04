@@ -155,7 +155,7 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Coil)
 
 TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HX)
 {
-
+    
     int NF;
     std::array<Real64, 2> F;
     std::array<Real64, 2> DF;
@@ -227,4 +227,45 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_TU)
 
     DisSysCompTermUnitData.deallocate();
     AirflowNetworkLinkageData.deallocate();
+}
+
+TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Duct)
+{
+
+    int NF;
+    std::array<Real64, 2> F;
+    std::array<Real64, 2> DF;
+    
+    EnergyPlusDuct duct;
+    duct.hydraulicDiameter = 1.0;
+    duct.L = 1.0;
+    duct.A = duct.hydraulicDiameter * duct.hydraulicDiameter * DataGlobals::Pi;
+    duct.InitLamCoef = 128.0;
+    duct.LamDynCoef = 64.0;
+    duct.LamFriCoef = 0.0001;
+    duct.TurDynCoef = 0.0001;
+
+    AirProperties prop0;
+    AirProperties prop1;
+ 
+    prop0.density = 1.2;
+    prop1.density = 1.2;
+
+    prop0.viscosity = 1.0e-5;
+    prop1.viscosity = 1.0e-5;
+
+    F[1] = DF[1] = 0.0;
+
+    NF = duct.calculate(1, 0.05, 1, prop0, prop1, F, DF);
+    EXPECT_NEAR(-294.5243112740431, F[0], 0.00001);
+    EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    NF = duct.calculate(1, -0.05, 1, prop0, prop1, F, DF);
+    EXPECT_NEAR(294.5243112740431, F[0], 0.00001);
+    EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
 }
