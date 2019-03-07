@@ -66,7 +66,6 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HorizontalOpening)
 {
 
     int i = 1;
-    int j = 1;
     int n;
     int m;
     int NF;
@@ -76,8 +75,6 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HorizontalOpening)
     n = 1;
     m = 2;
 
-    //AirflowNetworkCompData.allocate(j);
-    //AirflowNetworkCompData(j).TypeNum = 1;
     MultizoneSurfaceData.allocate(i);
     MultizoneSurfaceData(i).Width = 10.0;
     MultizoneSurfaceData(i).Height = 5.0;
@@ -113,7 +110,6 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HorizontalOpening)
 
     MultizoneCompHorOpeningData.deallocate();
     MultizoneSurfaceData.deallocate();
-    //AirflowNetworkCompData.deallocate();
 }
 
 TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Coil)
@@ -267,5 +263,4 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Duct)
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
-
 }

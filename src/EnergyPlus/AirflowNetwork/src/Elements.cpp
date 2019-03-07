@@ -227,10 +227,10 @@ namespace AirflowNetwork {
     Array1D<ReliefFlow> DisSysCompReliefAirData;
     Array1D<AirflowNetworkLinkageViewFactorProp> AirflowNetworkLinkageViewFactorData;
 
-    static Real64 square(Real64 x)
-    {
-        return x * x;
-    }
+    //static Real64 square(Real64 x)
+    //{
+    //    return x * x;
+    //}
 
     int Duct::calculate(bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
                         Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
