@@ -66,14 +66,9 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HorizontalOpening)
 {
 
     int i = 1;
-    int n;
-    int m;
     int NF;
     std::array<Real64, 2> F{{0.0, 0.0}};
     std::array<Real64, 2> DF{{0.0, 0.0}};
-
-    n = 1;
-    m = 2;
 
     MultizoneSurfaceData.allocate(i);
     MultizoneSurfaceData(i).Width = 10.0;
@@ -95,12 +90,14 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HorizontalOpening)
     AirflowNetworkLinkageData(i).NodeHeights[1] = 2.0;
 
     NF = MultizoneCompHorOpeningData(1).calculate(1, 0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_EQ(1, NF);
     EXPECT_NEAR(3.47863, F[0], 0.00001);
     EXPECT_NEAR(34.7863, DF[0], 0.0001);
     EXPECT_NEAR(2.96657, F[1], 0.00001);
     EXPECT_EQ(0.0, DF[1]);
 
     NF = MultizoneCompHorOpeningData(1).calculate(1, -0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_EQ(1, NF);
     EXPECT_NEAR(-3.42065, F[0], 0.00001);
     EXPECT_NEAR(34.20649, DF[0], 0.0001);
     EXPECT_NEAR(2.96657, F[1], 0.00001);
@@ -135,12 +132,14 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Coil)
 
 
     NF = DisSysCompCoilData[0].calculate(1, 0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_EQ(1, NF);
     EXPECT_NEAR(-294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
 
     NF = DisSysCompCoilData[0].calculate(1, -0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_EQ(1, NF);
     EXPECT_NEAR( 294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
@@ -171,13 +170,15 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_HX)
     F[1] = DF[1] = 0.0;
 
     NF = DisSysCompHXData[0].calculate(1, 0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_EQ(1, NF);
     EXPECT_NEAR(-294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
 
     NF = DisSysCompHXData[0].calculate(1, -0.05, 1, properties[0], properties[1], F, DF);
-    EXPECT_NEAR(294.5243112740431, F[0], 0.00001);
+    EXPECT_EQ(1, NF);
+    EXPECT_NEAR( 294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
@@ -210,13 +211,15 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_TU)
     F[1] = DF[1] = 0.0;
 
     NF = DisSysCompTermUnitData[0].calculate(1, 0.05, 1, properties[0], properties[1], F, DF);
+    EXPECT_EQ(1, NF);
     EXPECT_NEAR(-294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
 
     NF = DisSysCompTermUnitData[0].calculate(1, -0.05, 1, properties[0], properties[1], F, DF);
-    EXPECT_NEAR(294.5243112740431, F[0], 0.00001);
+    EXPECT_EQ(1, NF);
+    EXPECT_NEAR( 294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
@@ -253,14 +256,84 @@ TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_Duct)
     F[1] = DF[1] = 0.0;
 
     NF = duct.calculate(1, 0.05, 1, prop0, prop1, F, DF);
+    EXPECT_EQ(1, NF);
     EXPECT_NEAR(-294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
 
     NF = duct.calculate(1, -0.05, 1, prop0, prop1, F, DF);
-    EXPECT_NEAR(294.5243112740431, F[0], 0.00001);
+    EXPECT_EQ(1, NF);
+    EXPECT_NEAR( 294.5243112740431, F[0], 0.00001);
     EXPECT_NEAR(5890.4862254808613, DF[0], 0.0001);
     EXPECT_EQ(0.0, F[1]);
     EXPECT_EQ(0.0, DF[1]);
+}
+
+TEST_F(EnergyPlusFixture, AirflowNetworkSolverTest_DetailedOpening)
+{
+    DetailedOpening opening;
+    opening.FlowCoef = 0.00014;
+    opening.FlowExpo = 0.65;
+    opening.NumFac = 2;
+    opening.LVOType = 1;
+    opening.OpenFac1 = 0.0;
+    opening.DischCoeff1 = 0.65;
+    opening.WidthFac1 = 0.0;
+    opening.HeightFac1 = 0.19;
+    opening.StartHFac1 = 0.0;
+    opening.OpenFac2 = 1.0;
+    opening.DischCoeff2 = 0.65;
+    opening.WidthFac2 = 1.0;
+    opening.HeightFac2 = 0.19;
+    opening.StartHFac2 = 0.0;
+
+    int n = 1;
+    DpProf.allocate(n * (NrInt + 2));
+    RhoProfF.allocate(n * (NrInt + 2));
+    RhoProfT.allocate(n * (NrInt + 2));
+    DpL.allocate(1, 2);
+    
+    int NF;
+    std::array<Real64, 2> F{{0.0, 0.0}};
+    std::array<Real64, 2> DF{{0.0, 0.0}};
+
+    MultizoneSurfaceData.allocate(1);
+    MultizoneSurfaceData(1).Width = 1.0;
+    MultizoneSurfaceData(1).Height = 1.0;
+    MultizoneSurfaceData(1).OpenFactor = 1.0;
+
+    AirProperties prop0;
+    AirProperties prop1;
+
+    prop0.density = 1.2;
+    prop1.density = 1.2;
+
+    prop0.viscosity = 1.0e-5;
+    prop1.viscosity = 1.0e-5;
+
+    AirflowNetworkLinkageData.allocate(1);
+    AirflowNetworkLinkageData(1).DetOpenNum = 1;
+
+    NF = opening.calculate(1, 0.05, 1, prop0, prop1, F, DF);
+    // None of this works yet, need to call PStack and friends
+    //EXPECT_EQ(1, NF);
+    //EXPECT_NEAR(3.47863, F[0], 0.00001);
+    //EXPECT_NEAR(34.7863, DF[0], 0.0001);
+    //EXPECT_NEAR(2.96657, F[1], 0.00001);
+    //EXPECT_EQ(0.0, DF[1]);
+
+    //NF = MultizoneCompHorOpeningData(1).calculate(1, -0.05, 1, properties[0], properties[1], F, DF);
+    //EXPECT_EQ(1, NF);
+    //EXPECT_NEAR(-3.42065, F[0], 0.00001);
+    //EXPECT_NEAR(34.20649, DF[0], 0.0001);
+    //EXPECT_NEAR(2.96657, F[1], 0.00001);
+    //EXPECT_EQ(0.0, DF[1]);
+
+    AirflowNetworkLinkageData.deallocate();
+    MultizoneSurfaceData.deallocate();
+    DpProf.deallocate();
+    RhoProfF.deallocate();
+    RhoProfT.deallocate();
+    DpL.deallocate();
 }

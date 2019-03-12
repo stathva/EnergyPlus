@@ -196,7 +196,7 @@ namespace AirflowNetwork {
     AirflowNetworkSimuProp AirflowNetworkSimu;
     Array1D<AirflowNetworkNodeProp> AirflowNetworkNodeData;
     Array1D<AirflowNetworkCompProp> AirflowNetworkCompData;
-    Array1D<AirflowNetworkLinkageProp> AirflowNetworkLinkageData;
+    Array1D<AirflowNetworkLinkage> AirflowNetworkLinkageData;
     Array1D<MultizoneZoneProp> MultizoneZoneData;
     Array1D<MultizoneSurfaceProp> MultizoneSurfaceData;
     Array1D<DetailedOpening> MultizoneCompDetOpeningData;
@@ -209,7 +209,7 @@ namespace AirflowNetwork {
     Array1D<DeltaCpProp> EPDeltaCP;
     Array1D<ZoneExhaustFan> MultizoneCompExhaustFanData;
     Array1D<IntraZoneNodeProp> IntraZoneNodeData;
-    Array1D<IntraZoneLinkageProp> IntraZoneLinkageData;
+    Array1D<AirflowNetworkLinkage> IntraZoneLinkageData;
     Array1D<DisSysNodeProp> DisSysNodeData;
     Array1D<DuctLeak> DisSysCompLeakData;
     Array1D<EffectiveLeakageRatio> DisSysCompELRData;
@@ -944,7 +944,7 @@ namespace AirflowNetwork {
         return 1;
     }
 
-    int DetailedOpening::calculate(bool const EP_UNUSED(LFLAG),           // Initialization flag.If = 1, use laminar relationship
+    int DetailedOpening::calculate(bool const EP_UNUSED(LFLAG),           // Initialization flag. If = 1, use laminar relationship
                                    Real64 const PDROP,                    // Total pressure drop across a component (P1 - P2) [Pa]
                                    int const IL,                          // Linkage number
                                    const AirProperties &EP_UNUSED(propN), // Node 1 properties

@@ -492,7 +492,7 @@ namespace AirflowNetwork {
     struct SurfaceCrack : public AirflowElement // Surface crack component
     {
         // Members
-        std::string Name; // Name of crack component
+        std::string name; // Name of crack component
         // std::string ExternalNodeNames; // Name of external node.Not required for internal surface
         Real64 FlowCoef;  // Air Mass Flow Coefficient When Window or Door Is Closed [kg/s at 1Pa]
         Real64 FlowExpo;  // Air Mass Flow exponent When Window or Door Is Closed [dimensionless]
@@ -518,7 +518,7 @@ namespace AirflowNetwork {
     struct EffectiveLeakageArea : public AirflowElement // Surface effective leakage area component
     {
         // Members
-        std::string Name;   // Name of effective leakage area component
+        std::string name;   // Name of effective leakage area component
         Real64 ELA;         // Effective leakage area
         Real64 DischCoeff;  // Discharge coefficient
         Real64 RefDeltaP;   // Reference pressure difference
@@ -544,7 +544,7 @@ namespace AirflowNetwork {
     struct ZoneExhaustFan : public AirflowElement // Zone exhaust fan component
     {
         // Members
-        std::string Name; // Name of exhaust fan component
+        std::string Name; // Name of exhaust fan component - this one is still needed for FindItemInList
         Real64 FlowRate;  // mass flow rate
         int SchedPtr;     // Schedule pointer
         Real64 FlowCoef;  // Air Mass Flow Coefficient [kg/s at 1Pa]
@@ -631,20 +631,19 @@ namespace AirflowNetwork {
         int CompNum;                          // Element Number
         std::array<int, 2> NodeNums;          // Node numbers
         int LinkNum;                          // Linkage number
-
-        // Default Constructor
-        AirflowNetworkLinkage() : NodeHeights{{0.0, 0.0}}, CompNum(0), NodeNums{{0, 0}}, LinkNum(0)
-        {
-        }
-    };
-
-    struct IntraZoneLinkageProp : public AirflowNetworkLinkage // Intra zone linkage data
-    {
-        // Members
+        std::string ZoneName;                 // Name of zone
+        int ZoneNum;                          // Zone Number
+        int DetOpenNum;                       // Large Opening number
+        int ConnectionFlag;                   // Return and supply connection flag
+        bool VAVTermDamper;                   // True if this component is a damper for a VAV terminal
+        int LinkageViewFactorObjectNum;
+        int AirLoopNum; // Airloop number
         std::string SurfaceName; // Connection Surface Name
 
         // Default Constructor
-        IntraZoneLinkageProp() : AirflowNetworkLinkage()
+        AirflowNetworkLinkage()
+            : NodeHeights{{0.0, 0.0}}, CompNum(0), NodeNums{{0, 0}}, LinkNum(0), ZoneNum(0), DetOpenNum(0), ConnectionFlag(0), VAVTermDamper(false),
+              LinkageViewFactorObjectNum(0), AirLoopNum(0)
         {
         }
     };
@@ -668,7 +667,7 @@ namespace AirflowNetwork {
     struct DuctLeak : public AirflowElement // duct leak component
     {
         // Members
-        std::string Name; // Name of component leak
+        std::string name; // Name of component leak
         Real64 FlowCoef;  // Air Mass Flow Coefficient [kg/s at 1Pa]
         Real64 FlowExpo;  // Air Mass Flow exponent [dimensionless]
 
@@ -690,7 +689,7 @@ namespace AirflowNetwork {
     struct EffectiveLeakageRatio : public AirflowElement // effective leakage ratio component
     {
         // Members
-        std::string Name; // Name of component leak
+        std::string name; // Name of component leak
         Real64 ELR;       // Value of effective leakage ratio
         Real64 FlowRate;  // Maximum airflow rate
         Real64 RefPres;   // Reference pressure difference
@@ -714,7 +713,7 @@ namespace AirflowNetwork {
     struct Duct : public AirflowElement // Duct component
     {
         // Members
-        std::string Name;         // Name of duct component
+        std::string name;         // Name of duct component
         Real64 L;                 // Duct length [m]
         Real64 hydraulicDiameter; // Hydraulic diameter [m]
         Real64 A;                 // Cross section area [m2]
@@ -768,7 +767,7 @@ namespace AirflowNetwork {
     struct Damper : public AirflowElement // Damper component
     {
         // Members
-        std::string Name; // Name of damper component
+        std::string name; // Name of damper component
         Real64 LTP;       // Value for laminar turbulent transition
         Real64 LamFlow;   // Laminar flow coefficient
         Real64 TurFlow;   // Turbulent flow coefficient
@@ -798,7 +797,7 @@ namespace AirflowNetwork {
     struct ConstantVolumeFan : public AirflowElement // Constant volume fan component
     {
         // Members
-        std::string Name;          // Name of detailed fan component
+        std::string name;          // Name of detailed fan component
         Real64 FlowRate;           // Air volume flow rate
         Real64 Ctrl;               // Control ratio
         int FanTypeNum;            // Fan type: Constant volume or ONOFF
@@ -874,7 +873,7 @@ namespace AirflowNetwork {
     struct DisSysCompTermUnitProp : public AirflowElement // Terminal unit component
     {
         // Members
-        std::string Name;         // Name of coil component
+        std::string name;         // Name of coil component
         std::string EPlusType;    // EnergyPlus coil type
         Real64 L;                 // Air path length [m]
         Real64 hydraulicDiameter; // Air path hydraulic diameter [m]
@@ -920,18 +919,6 @@ namespace AirflowNetwork {
         );
     };
 
-    struct DisSysLinkageProp : public AirflowNetworkLinkage // Distribution system linkage data
-    {
-        // Members
-        std::string ZoneName; // Name of zone
-        int ZoneNum;          // Zone Number
-
-        // Default Constructor
-        DisSysLinkageProp() : AirflowNetworkLinkage(), ZoneNum(0)
-        {
-        }
-    };
-
     struct AirflowNetworkNodeProp // AirflowNetwork nodal data
     {
         // Members
@@ -974,25 +961,6 @@ namespace AirflowNetwork {
 
         // Default Constructor
         AirflowNetworkCompProp() : CompTypeNum(0), TypeNum(0), CompNum(0), EPlusTypeNum(0)
-        {
-        }
-    };
-
-    struct AirflowNetworkLinkageProp : public AirflowNetworkLinkage // AirflowNetwork linkage data
-    {
-        // Members
-        std::string ZoneName; // Name of zone
-        int ZoneNum;          // Zone Number
-        int DetOpenNum;       // Large Opening number
-        int ConnectionFlag;   // Return and supply connection flag
-        bool VAVTermDamper;   // True if this component is a damper for a VAV terminal
-        int LinkageViewFactorObjectNum;
-        int AirLoopNum; // Airloop number
-
-        // Default Constructor
-        AirflowNetworkLinkageProp()
-            : AirflowNetworkLinkage(), ZoneNum(0), DetOpenNum(0), ConnectionFlag(0), VAVTermDamper(false), LinkageViewFactorObjectNum(0),
-              AirLoopNum(0)
         {
         }
     };
@@ -1296,7 +1264,7 @@ namespace AirflowNetwork {
                             // type
     extern Array1D<AirflowNetworkNodeProp> AirflowNetworkNodeData;
     extern Array1D<AirflowNetworkCompProp> AirflowNetworkCompData;
-    extern Array1D<AirflowNetworkLinkageProp> AirflowNetworkLinkageData;
+    extern Array1D<AirflowNetworkLinkage> AirflowNetworkLinkageData;
     extern Array1D<MultizoneZoneProp> MultizoneZoneData;
     extern Array1D<MultizoneSurfaceProp> MultizoneSurfaceData;
     extern Array1D<DetailedOpening> MultizoneCompDetOpeningData;
@@ -1309,7 +1277,7 @@ namespace AirflowNetwork {
     extern Array1D<DeltaCpProp> EPDeltaCP;
     extern Array1D<ZoneExhaustFan> MultizoneCompExhaustFanData;
     extern Array1D<IntraZoneNodeProp> IntraZoneNodeData;       // Intra zone data set
-    extern Array1D<IntraZoneLinkageProp> IntraZoneLinkageData; // Intra zone linkage adat set
+    extern Array1D<AirflowNetworkLinkage> IntraZoneLinkageData; // Intra zone linkage adat set
     extern Array1D<DisSysNodeProp> DisSysNodeData;
     extern Array1D<DuctLeak> DisSysCompLeakData;
     extern Array1D<EffectiveLeakageRatio> DisSysCompELRData;

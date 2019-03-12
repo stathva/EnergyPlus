@@ -132,7 +132,7 @@ namespace AirflowNetwork {
 
     // Common block CONTRL
     extern Real64 PB;
-    extern int LIST;
+    //extern int LIST;
 
     // Common block ZONL
     // extern Array1D<Real64> RHOZ;
@@ -264,6 +264,7 @@ namespace AirflowNetwork {
                 int const FLAG               // mode of operation
     );
 
+#ifdef AIRFLOWNETWORK_DEBUG
     void DUMPVD(std::string const &S,    // Description
                 Array1A<Real64> const V, // Output values
                 int const n,             // Array size
@@ -275,6 +276,7 @@ namespace AirflowNetwork {
                 int const n,             // Array size
                 int const UOUT           // Output file unit
     );
+#endif
 
     int AFEDOP(int const j,                // Component number
                bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
