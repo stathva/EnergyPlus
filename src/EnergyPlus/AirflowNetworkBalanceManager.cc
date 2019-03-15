@@ -4129,7 +4129,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_DOP;
             AirflowNetworkCompData(i).TypeNum = i;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4141,7 +4141,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_SOP;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4153,7 +4153,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_SCR;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4165,7 +4165,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_SEL;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4177,7 +4177,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_EXF;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4189,7 +4189,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_HOP;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4201,7 +4201,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_PLR;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4213,7 +4213,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_ELR;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4225,7 +4225,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_DWC;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4237,7 +4237,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_DMP;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4249,7 +4249,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_CVF;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
             AirflowNetworkCompData(i).EPlusTypeNum = EPlusTypeNum_FAN;
@@ -4262,7 +4262,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_FAN;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
             AirflowNetworkCompData(i).EPlusTypeNum = EPlusTypeNum_FAN;
@@ -4275,7 +4275,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_CPD;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4287,7 +4287,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_COI;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
             AirflowNetworkCompData(i).EPlusTypeNum = EPlusTypeNum_COI;
@@ -4300,7 +4300,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_TMU;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
             AirflowNetworkCompData(i).EPlusTypeNum = EPlusTypeNum_RHT;
@@ -4313,7 +4313,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_HEX;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
             AirflowNetworkCompData(i).EPlusTypeNum = EPlusTypeNum_HEX;
@@ -4326,7 +4326,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_OAF;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }
@@ -4338,7 +4338,7 @@ namespace AirflowNetworkBalanceManager {
             AirflowNetworkCompData(i).CompTypeNum = CompTypeNum_REL;
             AirflowNetworkCompData(i).TypeNum = n;
             AirflowNetworkCompData(i).EPlusName = "";
-            AirflowNetworkCompData(i).EPlusCompName = "";
+            //AirflowNetworkCompData(i).EPlusCompName = "";
             AirflowNetworkCompData(i).EPlusType = "";
             AirflowNetworkCompData(i).CompNum = i;
         }

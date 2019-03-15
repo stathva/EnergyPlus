@@ -186,7 +186,7 @@ namespace AirflowNetwork {
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
         int i;
-        int j;
+        //int j;
         int n;
 
         // Formats

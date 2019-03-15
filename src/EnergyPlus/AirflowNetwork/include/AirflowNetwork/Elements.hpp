@@ -1003,12 +1003,12 @@ namespace AirflowNetwork {
         int TypeNum;               // Component number under same component type
         int CompNum;               // General component number
         std::string EPlusName;     // Provide a unique element name
-        std::string EPlusCompName; // Provide EPlus component name or Other
+        //std::string EPlusCompName; // Provide EPlus component name or Other
         std::string EPlusType;     // Provide EPlus type, such as terminal reheat, coil, etc. 9/30/03 or Other
-        int EPlusTypeNum;          // Provide EPlus component type
+        //int EPlusTypeNum;          // Provide EPlus component type
 
         // Default Constructor
-        AirflowNetworkCompProp() : CompTypeNum(0), TypeNum(0), CompNum(0), EPlusTypeNum(0)
+        AirflowNetworkCompProp() : CompTypeNum(0), TypeNum(0), CompNum(0)//, EPlusTypeNum(0)
         {
         }
     };
