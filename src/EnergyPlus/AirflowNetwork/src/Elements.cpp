@@ -227,7 +227,7 @@ namespace AirflowNetwork {
     Array1D<ReliefFlow> DisSysCompReliefAirData;
     Array1D<AirflowNetworkLinkageViewFactorProp> AirflowNetworkLinkageViewFactorData;
 
-    //static Real64 square(Real64 x)
+    // static Real64 square(Real64 x)
     //{
     //    return x * x;
     //}

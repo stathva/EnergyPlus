@@ -240,6 +240,8 @@ namespace AirflowNetworkBalanceManager {
     Array1D_int IVEC;
     Array1D_int SplitterNodeNumbers;
 
+    Solver solver;
+
     bool AirflowNetworkGetInputFlag(true);
     int VentilationCtrl(0);  // Hybrid ventilation control type
     int NumOfExhaustFans(0); // Number of exhaust fans
@@ -359,6 +361,8 @@ namespace AirflowNetworkBalanceManager {
         LoopOnOffFanRunTimeFraction.deallocate();
         LoopOnOffFlag.deallocate();
         UniqueAirflowNetworkSurfaceName.clear();
+
+        solver.clear();
     }
 
     void ManageAirflowNetworkBalance(Optional_bool_const FirstHVACIteration, // True when solution technique on first iteration
@@ -447,7 +451,7 @@ namespace AirflowNetworkBalanceManager {
                     }
                 }
             }
-            //			Revised to meet heat exchanger requirement
+            // Revised to meet heat exchanger requirement
             if ((FanMassFlowRate > VerySmallMassFlow) && (!FirstHVACIteration)) {
                 if (AFNSupplyFanType == FanType_SimpleOnOff && FanOperModeCyc == CycFanCycCoil) {
                     AirflowNetworkFanActivated = true;
@@ -620,6 +624,10 @@ namespace AirflowNetworkBalanceManager {
                 MultizoneSurfaceCrackData(i).StandardT = refT;
                 MultizoneSurfaceCrackData(i).StandardP = refP;
                 MultizoneSurfaceCrackData(i).StandardW = refW;
+
+                // This is the first element that is being added, so no check of naming overlaps
+                solver.elements[thisObjectName] = &MultizoneSurfaceCrackData(i); // Yet another workaround
+
                 ++i;
             }
         }
@@ -708,6 +716,16 @@ namespace AirflowNetworkBalanceManager {
                 MultizoneCompExhaustFanData(i).StandardT = refT;
                 MultizoneCompExhaustFanData(i).StandardP = refP;
                 MultizoneCompExhaustFanData(i).StandardW = refW;
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &MultizoneCompExhaustFanData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -767,6 +785,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompOutdoorAirData(i).StandardT = refT;
                 DisSysCompOutdoorAirData(i).StandardP = refP;
                 DisSysCompOutdoorAirData(i).StandardW = refW;
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &DisSysCompOutdoorAirData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -824,6 +852,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompReliefAirData(i).StandardT = refT;
                 DisSysCompReliefAirData(i).StandardP = refP;
                 DisSysCompReliefAirData(i).StandardW = refW;
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &DisSysCompReliefAirData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1087,6 +1125,16 @@ namespace AirflowNetworkBalanceManager {
                         }
                     }
                 }
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &MultizoneCompDetOpeningData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1117,6 +1165,16 @@ namespace AirflowNetworkBalanceManager {
                 MultizoneCompSimpleOpeningData(i).FlowExpo = expnt;            // Air Mass Flow exponent When Window or Door Is Closed
                 MultizoneCompSimpleOpeningData(i).MinRhoDiff = diff;           // Minimum density difference for two-way flow
                 MultizoneCompSimpleOpeningData(i).DischCoeff = dischargeCoeff; // Discharge coefficient at full opening
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &MultizoneCompSimpleOpeningData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1150,6 +1208,16 @@ namespace AirflowNetworkBalanceManager {
                 MultizoneCompHorOpeningData(i).FlowExpo = expnt;            // Air Mass Flow exponent When Window or Door Is Closed
                 MultizoneCompHorOpeningData(i).Slope = angle;               // Sloping plane angle
                 MultizoneCompHorOpeningData(i).DischCoeff = dischargeCoeff; // Discharge coefficient at full opening
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &MultizoneCompHorOpeningData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1188,6 +1256,16 @@ namespace AirflowNetworkBalanceManager {
                 MultizoneSurfaceELAData(i).FlowExpo = expnt;      // Air Mass Flow exponent
                 MultizoneSurfaceELAData(i).TestDeltaP = 0.0;      // Testing pressure difference
                 MultizoneSurfaceELAData(i).TestDisCoef = 0.0;     // Testing Discharge coefficient
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &MultizoneSurfaceELAData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1214,6 +1292,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompLeakData(i).name = thisObjectName; // Name of duct leak component
                 DisSysCompLeakData(i).FlowCoef = coeff;      // Air Mass Flow Coefficient
                 DisSysCompLeakData(i).FlowExpo = expnt;      // Air Mass Flow exponent
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &DisSysCompLeakData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1244,6 +1332,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompELRData(i).FlowRate = maxflow * StdRhoAir; // Maximum airflow rate
                 DisSysCompELRData(i).RefPres = dp;                   // Reference pressure difference
                 DisSysCompELRData(i).FlowExpo = expnt;               // Air Mass Flow exponent
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &DisSysCompELRData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1308,6 +1406,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompDuctData(i).RelL = L / D;            // L/D: relative length
                 DisSysCompDuctData(i).A1 = 1.14 - 0.868589 * std::log(DisSysCompDuctData(i).RelRough); // 1.14 - 0.868589*ln(e/D)
                 DisSysCompDuctData(i).g = DisSysCompDuctData(i).A1;                                    // 1/sqrt(Darcy friction factor)
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &DisSysCompDuctData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1400,6 +1508,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompCVFData(i).FanTypeNum = fanType_Num;
                 DisSysCompCVFData(i).InletNode = inletNode;
                 DisSysCompCVFData(i).OutletNode = outletNode;
+
+                // Check for name overlaps
+                if (solver.elements.find(fan_name) == solver.elements.end()) {
+                    solver.elements[fan_name] = &DisSysCompCVFData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + fan_name);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1427,6 +1545,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompCoilData(i).L = L;                                            // Air path length
                 DisSysCompCoilData(i).hydraulicDiameter = D;                            // Air path hydraulic diameter
                 DisSysCompCoilData(i).A = D * D * DataGlobals::Pi;                      // Cross section area
+
+                // Check for name overlaps
+                if (solver.elements.find(DisSysCompCoilData(i).name) == solver.elements.end()) {
+                    solver.elements[DisSysCompCoilData(i).name] = &DisSysCompCoilData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + DisSysCompCoilData(i).name);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1455,6 +1583,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompHXData(i).hydraulicDiameter = D;                          // Air path hydraulic diameter
                 DisSysCompHXData(i).A = D * D * DataGlobals::Pi;                    // Cross section area
                 DisSysCompHXData(i).CoilParentExists = HVACHXAssistedCoolingCoil::VerifyHeatExchangerParent(hx_type, hx_name);
+
+                // Check for name overlaps
+                if (solver.elements.find(DisSysCompHXData(i).name) == solver.elements.end()) {
+                    solver.elements[DisSysCompHXData(i).name] = &DisSysCompHXData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + DisSysCompHXData(i).name);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1482,6 +1620,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompTermUnitData(i).L = L;                                          // Air path length
                 DisSysCompTermUnitData(i).hydraulicDiameter = D;                          // Air path hydraulic diameter
                 DisSysCompTermUnitData(i).A = D * D * DataGlobals::Pi;                    // Cross section area
+
+                // Check for name overlaps
+                if (solver.elements.find(DisSysCompTermUnitData(i).name) == solver.elements.end()) {
+                    solver.elements[DisSysCompTermUnitData(i).name] = &DisSysCompTermUnitData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + DisSysCompTermUnitData(i).name);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -1504,6 +1652,16 @@ namespace AirflowNetworkBalanceManager {
                 DisSysCompCPDData(i).Name = thisObjectName; // Name of constant pressure drop component
                 DisSysCompCPDData(i).A = 1.0;               // cross section area
                 DisSysCompCPDData(i).DP = dp;               // Pressure difference across the component
+
+                // Check for name overlaps
+                if (solver.elements.find(thisObjectName) == solver.elements.end()) {
+                    solver.elements[thisObjectName] = &DisSysCompCPDData(i); // Yet another workaround
+                } else {
+                    ShowSevereError(RoutineName + "Duplicated component names are found = " + thisObjectName);
+                    // ShowContinueError("A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
+                    success = false;
+                }
+
                 ++i;
             }
         }
@@ -4565,6 +4723,18 @@ namespace AirflowNetworkBalanceManager {
             }
         }
 
+        // Connect linkages to elements, this loop will assume that validation has already happened
+        for (auto &link : AirflowNetworkLinkageData) {
+            auto afe = solver.elements.find(link.CompName);
+            if (afe != solver.elements.end()) {
+                link.element = afe->second;
+            } else {
+                ShowSevereError(RoutineName + "Component = " + link.CompName + " in AIRFLOWNETWORK:DISTRIBUTION:LINKAGE = " + link.Name +
+                                " is not found in AirflowNetwork Component Data objects.");
+                ErrorsFound = true;
+            }
+        }
+
         // Node and component validation
         for (count = 1; count <= AirflowNetworkNumOfLinks; ++count) {
             NodeFound = false;
@@ -7293,7 +7463,7 @@ namespace AirflowNetworkBalanceManager {
         int NF;
         int NT;
         int CompTypeNum;
-        int TypeNum;
+        //int TypeNum;
         std::string CompName;
         Real64 Ei;
         Real64 DirSign;
@@ -7312,7 +7482,7 @@ namespace AirflowNetworkBalanceManager {
             CompName = AirflowNetworkCompData(CompNum).EPlusName;
             // Calculate duct moisture diffusion loss
             if (CompTypeNum == CompTypeNum_DWC && CompName == BlankString) { // Duct component only
-                TypeNum = AirflowNetworkCompData(CompNum).TypeNum;
+                int TypeNum = AirflowNetworkCompData(CompNum).TypeNum;
                 if (AirflowNetworkLinkSimu(i).FLOW > 0.0) { // flow direction is the same as input from node 1 to node 2
                     LF = AirflowNetworkLinkageData(i).NodeNums[0];
                     LT = AirflowNetworkLinkageData(i).NodeNums[1];
@@ -7353,7 +7523,7 @@ namespace AirflowNetworkBalanceManager {
                 }
             }
             if (CompTypeNum == CompTypeNum_TMU) { // Reheat unit: SINGLE DUCT:CONST VOLUME:REHEAT
-                TypeNum = AirflowNetworkCompData(CompNum).TypeNum;
+                int TypeNum = AirflowNetworkCompData(CompNum).TypeNum;
                 if (AirflowNetworkLinkSimu(i).FLOW > 0.0) { // flow direction is the same as input from node 1 to node 2
                     LF = AirflowNetworkLinkageData(i).NodeNums[0];
                     LT = AirflowNetworkLinkageData(i).NodeNums[1];
@@ -7381,7 +7551,6 @@ namespace AirflowNetworkBalanceManager {
                 }
             }
             if (CompTypeNum == CompTypeNum_COI) { // heating or cooling coil
-                TypeNum = AirflowNetworkCompData(CompNum).TypeNum;
                 if (AirflowNetworkLinkSimu(i).FLOW > 0.0) { // flow direction is the same as input from node 1 to node 2
                     LF = AirflowNetworkLinkageData(i).NodeNums[0];
                     LT = AirflowNetworkLinkageData(i).NodeNums[1];

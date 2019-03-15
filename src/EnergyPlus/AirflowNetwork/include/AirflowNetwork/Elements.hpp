@@ -360,9 +360,55 @@ namespace AirflowNetwork {
 
     struct AirflowElement
     {
+        enum class Type{
+            DOP, // Detailed large opening component
+            SOP, // Simple opening component
+            SCR, // Surface crack component
+            SEL, // Surface effective leakage ratio component
+            PLR, // Distribution system crack component
+            DWC, // Distribution system duct component
+            CVF, // Distribution system constant volume fan component
+            FAN, // Distribution system detailed fan component
+            MRR, // Distribution system multiple curve fit power law resistant flow component
+            DMP, // Distribution system damper component
+            ELR, // Distribution system effective leakage ratio component
+            CPD, // Distribution system constant pressure drop component
+            COI, // Distribution system coil component
+            TMU, // Distribution system terminal unit component
+            EXF, // Zone exhaust fan
+            HEX, // Distribution system heat exchanger
+            HOP, // Horizontal opening component
+            RVD, // Reheat VAV terminal damper
+            OAF, // Distribution system OA
+            REL  // Distribution system relief air
+        };
+
+        AirflowElement(Type type) : m_type(type)
+        {
+        }
+
         virtual ~AirflowElement()
         {
         }
+
+        //AirflowElement &operator=(const AirflowElement &) = delete;
+
+        virtual int calculate(bool const LFLAG,           // Initialization flag.If = 1, use laminar relationship
+                              Real64 const PDROP,         // Total pressure drop across a component (P1 - P2) [Pa]
+                              int const i,                // Linkage number
+                              const AirProperties &propN, // Node 1 properties
+                              const AirProperties &propM, // Node 2 properties
+                              std::array<Real64, 2> &F,   // Airflow through the component [kg/s]
+                              std::array<Real64, 2> &DF   // Partial derivative:  DF/DP
+                              ) = 0;
+
+        Type type() const
+        {
+            return m_type;
+        }
+
+    private:
+        Type m_type;
     };
 
     struct DetailedOpening : public AirflowElement // Large detailed opening component
@@ -404,7 +450,7 @@ namespace AirflowNetwork {
 
         // Default Constructor
         DetailedOpening()
-            : FlowCoef(0.0), FlowExpo(0.0), TypeName("NONPIVOTED"), LVOType(0), LVOValue(0.0), NumFac(0), OpenFac1(0.0), DischCoeff1(0.0),
+            : AirflowElement(Type::DOP), FlowCoef(0.0), FlowExpo(0.0), TypeName("NONPIVOTED"), LVOType(0), LVOValue(0.0), NumFac(0), OpenFac1(0.0), DischCoeff1(0.0),
               WidthFac1(0.0), HeightFac1(0.0), StartHFac1(0.0), OpenFac2(0.0), DischCoeff2(0.0), WidthFac2(0.0), HeightFac2(0.0), StartHFac2(0.0),
               OpenFac3(0.0), DischCoeff3(0.0), WidthFac3(0.0), HeightFac3(0.0), StartHFac3(0.0), OpenFac4(0.0), DischCoeff4(0.0), WidthFac4(0.0),
               HeightFac4(0.0), StartHFac4(0.0), OpenFactor(0.0), WidthErrCount(0), WidthErrIndex(0), HeightErrCount(0), HeightErrIndex(0)
@@ -432,7 +478,7 @@ namespace AirflowNetwork {
         Real64 OpenFactor; // Opening factor
 
         // Default Constructor
-        SimpleOpening() : FlowCoef(0.0), FlowExpo(0.0), MinRhoDiff(0.0), DischCoeff(0.0), OpenFactor(0.0)
+        SimpleOpening() : AirflowElement(Type::SOP), FlowCoef(0.0), FlowExpo(0.0), MinRhoDiff(0.0), DischCoeff(0.0), OpenFactor(0.0)
         {
         }
 
@@ -456,7 +502,7 @@ namespace AirflowNetwork {
         Real64 DischCoeff; // Discharge coefficient at full opening
 
         // Default Constructor
-        HorizontalOpening() : FlowCoef(0.0), FlowExpo(0.0), Slope(0.0), DischCoeff(0.0)
+        HorizontalOpening() : AirflowElement(Type::HOP), FlowCoef(0.0), FlowExpo(0.0), Slope(0.0), DischCoeff(0.0)
         {
         }
 
@@ -501,7 +547,7 @@ namespace AirflowNetwork {
         Real64 StandardW; // Standard humidity ratio for crack data
 
         // Default Constructor
-        SurfaceCrack() : FlowCoef(0.0), FlowExpo(0.0), StandardT(20.0), StandardP(101325.0), StandardW(0.0)
+        SurfaceCrack() : AirflowElement(Type::SCR), FlowCoef(0.0), FlowExpo(0.0), StandardT(20.0), StandardP(101325.0), StandardW(0.0)
         {
         }
 
@@ -527,7 +573,7 @@ namespace AirflowNetwork {
         Real64 TestDisCoef; // Testing Discharge coefficient
 
         // Default Constructor
-        EffectiveLeakageArea() : ELA(0.0), DischCoeff(0.0), RefDeltaP(0.0), FlowExpo(0.0), TestDeltaP(0.0), TestDisCoef(0.0)
+        EffectiveLeakageArea() : AirflowElement(Type::SEL), ELA(0.0), DischCoeff(0.0), RefDeltaP(0.0), FlowExpo(0.0), TestDeltaP(0.0), TestDisCoef(0.0)
         {
         }
 
@@ -559,7 +605,7 @@ namespace AirflowNetwork {
 
         // Default Constructor
         ZoneExhaustFan()
-            : FlowRate(0.0), SchedPtr(0), FlowCoef(0.0), FlowExpo(0.0), StandardT(0.0), StandardP(0.0), StandardW(0.0), InletNode(0), OutletNode(0),
+            : AirflowElement(Type::EXF), FlowRate(0.0), SchedPtr(0), FlowCoef(0.0), FlowExpo(0.0), StandardT(0.0), StandardP(0.0), StandardW(0.0), InletNode(0), OutletNode(0),
               EPlusZoneNum(0), PressCtrlNum(0)
         {
         }
@@ -594,6 +640,7 @@ namespace AirflowNetwork {
         }
     };
 
+    // Refactor the ssnv feature to eliminate this object
     struct DeltaCpProp
     {
         // Members
@@ -637,13 +684,14 @@ namespace AirflowNetwork {
         int ConnectionFlag;                   // Return and supply connection flag
         bool VAVTermDamper;                   // True if this component is a damper for a VAV terminal
         int LinkageViewFactorObjectNum;
-        int AirLoopNum; // Airloop number
+        int AirLoopNum;          // Airloop number
         std::string SurfaceName; // Connection Surface Name
+        AirflowElement *element;
 
         // Default Constructor
         AirflowNetworkLinkage()
             : NodeHeights{{0.0, 0.0}}, CompNum(0), NodeNums{{0, 0}}, LinkNum(0), ZoneNum(0), DetOpenNum(0), ConnectionFlag(0), VAVTermDamper(false),
-              LinkageViewFactorObjectNum(0), AirLoopNum(0)
+              LinkageViewFactorObjectNum(0), AirLoopNum(0), element(nullptr)
         {
         }
     };
@@ -672,7 +720,7 @@ namespace AirflowNetwork {
         Real64 FlowExpo;  // Air Mass Flow exponent [dimensionless]
 
         // Default Constructor
-        DuctLeak() : FlowCoef(0.0), FlowExpo(0.0)
+        DuctLeak() : AirflowElement(Type::PLR), FlowCoef(0.0), FlowExpo(0.0)
         {
         }
 
@@ -696,7 +744,7 @@ namespace AirflowNetwork {
         Real64 FlowExpo;  // Air Mass Flow exponent
 
         // Default Constructor
-        EffectiveLeakageRatio() : ELR(0.0), FlowRate(0.0), RefPres(0.0), FlowExpo(0.0)
+        EffectiveLeakageRatio() : AirflowElement(Type::ELR), ELR(0.0), FlowRate(0.0), RefPres(0.0), FlowExpo(0.0)
         {
         }
 
@@ -728,8 +776,8 @@ namespace AirflowNetwork {
         Real64 A1;                // 1.14 - 0.868589*ln(e/D),
 
         // Default Constructor
-        Duct()
-            : L(0.0), hydraulicDiameter(0.0), A(0.0), roughness(0.0), TurDynCoef(0.0), LamDynCoef(0.0), LamFriCoef(0.0), InitLamCoef(0.0),
+        Duct(Type type = Type::DWC)
+            : AirflowElement(type), L(0.0), hydraulicDiameter(0.0), A(0.0), roughness(0.0), TurDynCoef(0.0), LamDynCoef(0.0), LamFriCoef(0.0), InitLamCoef(0.0),
               RelRough(0.0), RelL(0.0), g(0.0), A1(0.0)
         {
         }
@@ -780,7 +828,7 @@ namespace AirflowNetwork {
         Real64 A3;        // Fourth polynomial coefficient of the control variable (cubic coefficient)
 
         // Default Constructor
-        Damper() : LTP(0.0), LamFlow(0.0), TurFlow(0.0), FlowExpo(0.0), FlowMin(0.0), FlowMax(0.0), A0(0.0), A1(0.0), A2(0.0), A3(0.0)
+        Damper() : AirflowElement(Type::DMP), LTP(0.0), LamFlow(0.0), TurFlow(0.0), FlowExpo(0.0), FlowMin(0.0), FlowMax(0.0), A0(0.0), A1(0.0), A2(0.0), A3(0.0)
         {
         }
 
@@ -809,7 +857,7 @@ namespace AirflowNetwork {
 
         // Default Constructor
         ConstantVolumeFan()
-            : FlowRate(0.0), Ctrl(0.0), FanTypeNum(0), FanIndex(0), InletNode(0), OutletNode(0), MaxAirMassFlowRate(0.0), AirLoopNum(0)
+            : AirflowElement(Type::CVF), FlowRate(0.0), Ctrl(0.0), FanTypeNum(0), FanIndex(0), InletNode(0), OutletNode(0), MaxAirMassFlowRate(0.0), AirLoopNum(0)
         {
         }
 
@@ -838,7 +886,7 @@ namespace AirflowNetwork {
         // Each range has a min flow rate and 4 coefficients
 
         // Default Constructor
-        DetailedFan() : FlowCoef(0.0), FlowExpo(0.0), RhoAir(0.0), Qfree(0.0), Pshut(0.0), TranRat(0.0)
+        DetailedFan() : AirflowElement(Type::FAN), FlowCoef(0.0), FlowExpo(0.0), RhoAir(0.0), Qfree(0.0), Pshut(0.0), TranRat(0.0)
         {
         }
 
@@ -860,7 +908,7 @@ namespace AirflowNetwork {
         bool CoilParentExists; // Is a coil component
 
         // Default Constructor
-        EquivalentDuct() : Duct(), AirLoopNum(0), CoilParentExists(false)
+        EquivalentDuct(Type type = Type::DWC) : Duct(type), AirLoopNum(0), CoilParentExists(false)
         {
             roughness = 0.0001;
             InitLamCoef = 128.0;
@@ -883,7 +931,7 @@ namespace AirflowNetwork {
         int AirLoopNum;           // AirLoop number
 
         // Default Constructor
-        DisSysCompTermUnitProp() : L(0.0), hydraulicDiameter(0.0), DamperInletNode(0), DamperOutletNode(0), AirLoopNum(0)
+        DisSysCompTermUnitProp() : AirflowElement(Type::TMU), L(0.0), hydraulicDiameter(0.0), DamperInletNode(0), DamperOutletNode(0), AirLoopNum(0)
         {
         }
 
@@ -905,7 +953,7 @@ namespace AirflowNetwork {
         Real64 DP;        // Pressure difference across the component
 
         // Default Constructor
-        ConstantPressureDrop() : A(0.0), DP(0.0)
+        ConstantPressureDrop() : AirflowElement(Type::CPD), A(0.0), DP(0.0)
         {
         }
 
@@ -1007,7 +1055,7 @@ namespace AirflowNetwork {
 
         // Default Constructor
         OutdoorAirFan()
-            : SchedPtr(0), FlowCoef(0.0), FlowExpo(0.0), StandardT(0.0), StandardP(0.0), StandardW(0.0), InletNode(0), OutletNode(0), OAMixerNum(0),
+            : AirflowElement(Type::OAF), SchedPtr(0), FlowCoef(0.0), FlowExpo(0.0), StandardT(0.0), StandardP(0.0), StandardW(0.0), InletNode(0), OutletNode(0), OAMixerNum(0),
               PressCtrlNum(0)
         {
         }
@@ -1276,7 +1324,7 @@ namespace AirflowNetwork {
     extern Array1D<DeltaCpProp> DeltaCp;
     extern Array1D<DeltaCpProp> EPDeltaCP;
     extern Array1D<ZoneExhaustFan> MultizoneCompExhaustFanData;
-    extern Array1D<IntraZoneNodeProp> IntraZoneNodeData;       // Intra zone data set
+    extern Array1D<IntraZoneNodeProp> IntraZoneNodeData;        // Intra zone data set
     extern Array1D<AirflowNetworkLinkage> IntraZoneLinkageData; // Intra zone linkage adat set
     extern Array1D<DisSysNodeProp> DisSysNodeData;
     extern Array1D<DuctLeak> DisSysCompLeakData;

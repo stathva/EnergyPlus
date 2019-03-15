@@ -52,6 +52,8 @@
 #include <ObjexxFCL/Array1A.hh>
 #include <ObjexxFCL/Array2D.hh>
 
+#include <unordered_map>
+
 #include "AirflowNetwork/Properties.hpp"
 
 namespace EnergyPlus {
@@ -71,8 +73,19 @@ namespace AirflowNetwork {
         Real64 viscosity{AIRDYNAMICVISCOSITY(20.0)};
     };
 
+    // Forward declaration
+    struct AirflowElement;
+
     struct Solver
     {
+
+        Solver() : NrInt(20)
+        {
+        }
+
+        void clear(); // Clean up
+
+        std::unordered_map<std::string, AirflowElement *> elements;
         std::vector<AirProperties> properties;
 
         int NetworkNumOfLinks;
@@ -132,7 +145,7 @@ namespace AirflowNetwork {
 
     // Common block CONTRL
     extern Real64 PB;
-    //extern int LIST;
+    // extern int LIST;
 
     // Common block ZONL
     // extern Array1D<Real64> RHOZ;

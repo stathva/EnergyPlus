@@ -53,6 +53,7 @@
 #include <ObjexxFCL/Optional.hh>
 
 // EnergyPlus Headers
+#include "AirflowNetwork/Solver.hpp"
 #include <EnergyPlus.hh>
 
 namespace EnergyPlus {
@@ -121,6 +122,8 @@ namespace AirflowNetworkBalanceManager {
     extern int SupplyFanType;              // Supply air fan type
     extern Real64 OnOffFanRunTimeFraction; // Run time fraction for an On/Off fan flow rate
     extern int AirflowNetworkNumOfOccuVentCtrls;
+
+    extern AirflowNetwork::Solver solver;
 
     // SUBROUTINE SPECIFICATIONS FOR MODULE AirflowNetworkBalanceManager:
     // Name Public routines, optionally name Private routines within this module
