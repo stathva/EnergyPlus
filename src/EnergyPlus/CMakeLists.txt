@@ -208,6 +208,8 @@ SET( SRC
   EnergyPlus.hh
   EvaporativeCoolers.cc
   EvaporativeCoolers.hh
+  ExtCtrl.cc
+  ExtCtrl.hh
   EvaporativeFluidCoolers.cc
   EvaporativeFluidCoolers.hh
   ExteriorEnergyUse.cc

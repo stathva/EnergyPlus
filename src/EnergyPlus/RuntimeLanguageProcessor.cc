@@ -74,6 +74,7 @@
 #include <OutputProcessor.hh>
 #include <Psychrometrics.hh>
 #include <RuntimeLanguageProcessor.hh>
+#include <ExtCtrl.hh>
 #include <UtilityRoutines.hh>
 
 namespace EnergyPlus {
@@ -1666,6 +1667,16 @@ namespace RuntimeLanguageProcessor {
                         Token(NumTokens).Operator = FuncCurveValue;
                         Token(NumTokens).String = String.substr(Pos, 11);
                         Pos += 10;
+                    } else if (UtilityRoutines::SameString(String.substr(Pos, 11), "@EXTCTRLOBS")) {
+						if (DeveloperFlag) gio::write(OutputFileDebug, fmtA) << "OPERATOR \"" + String.substr(Pos, 12) + "\"";
+						Token(NumTokens).Operator = FuncExtCtrlObs;
+						Token(NumTokens).String = String.substr(Pos, 11);
+						Pos += 10;
+					} else if (UtilityRoutines::SameString(String.substr(Pos, 11), "@EXTCTRLACT")) {
+						if ( DeveloperFlag ) gio::write(OutputFileDebug, fmtA) << "OPERATOR \"" + String.substr(Pos, 12) + "\"";
+						Token(NumTokens).Operator = FuncExtCtrlAct;
+						Token(NumTokens).String = String.substr(Pos, 11);
+						Pos += 10;
                     } else { // throw error
                         if (DeveloperFlag) gio::write(OutputFileDebug, fmtA) << "ERROR \"" + String + "\"";
                         ShowFatalError("EMS Runtime Language: did not find valid input for built-in function =" + String);
@@ -2059,6 +2070,7 @@ namespace RuntimeLanguageProcessor {
         // Using/Aliasing
         using DataGlobals::DegToRadians; // unused, TimeStepZone
         using namespace Psychrometrics;
+        using namespace ExtCtrl;
         using CurveManager::CurveValue;
         using General::RoundSigDigits;
         using General::TrimSigDigits;
@@ -2684,7 +2696,10 @@ namespace RuntimeLanguageProcessor {
                                                                                             // independent | Z Value, 3rd independent | 4th
                                                                                             // independent | 5th independent
                         }
-
+                    } else if (SELECT_CASE_var == FuncExtCtrlObs) {
+				        ReturnValue = SetErlValueNumber(ExtCtrlObs(Operand(1).Number, Operand(2).Number));
+			        } else if (SELECT_CASE_var == FuncExtCtrlAct) {
+				        ReturnValue = SetErlValueNumber(ExtCtrlAct(Operand(1).Number, Operand(2).Number));
                     } else {
                         // throw Error!
                         ShowFatalError("caught unexpected Expression(ExpressionNum)%Operator in EvaluateExpression");
@@ -4344,6 +4359,14 @@ namespace RuntimeLanguageProcessor {
         PossibleOperators(FuncCurveValue).Symbol = "@CURVEVALUE";
         PossibleOperators(FuncCurveValue).NumOperands = 6;
         PossibleOperators(FuncCurveValue).Code = FuncCurveValue;
+
+        PossibleOperators(FuncExtCtrlObs).Symbol = "@EXTCTRLOBS";
+		PossibleOperators(FuncExtCtrlObs).NumOperands = 2;
+		PossibleOperators(FuncExtCtrlObs).Code = FuncExtCtrlObs;
+
+		PossibleOperators(FuncExtCtrlAct).Symbol = "@EXTCTRLACT";
+		PossibleOperators(FuncExtCtrlAct).NumOperands = 2;
+		PossibleOperators(FuncExtCtrlAct).Code = FuncExtCtrlAct;
 
         AlreadyDidOnce = true;
     }

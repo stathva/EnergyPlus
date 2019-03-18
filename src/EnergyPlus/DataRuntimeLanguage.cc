@@ -177,7 +177,11 @@ namespace DataRuntimeLanguage {
     // Curve and Table access function
     int const FuncCurveValue(68);
 
-    int const NumPossibleOperators(68); // total number of operators and built-in functions
+    // External Control function
+	int const FuncExtCtrlObs( 69 ); // access for external control extctrlobs routine
+	int const FuncExtCtrlAct( 70 ); // access for external control extctrlact routine
+
+    int const NumPossibleOperators(70); // total number of operators and built-in functions
 
     // DERIVED TYPE DEFINITIONS:
 
